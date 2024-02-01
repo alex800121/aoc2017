@@ -4,9 +4,11 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module MyLib where
 
+import Control.Lens
 import Control.Monad (guard, mplus)
 import Data.Array.IArray (IArray, array)
 import Data.Bits (Bits (..), FiniteBits (..), xor)
@@ -48,18 +50,20 @@ pickAnySplit = f id
 --   | n <= 0 = []
 --   | otherwise = [y : ys' | (y, ys) <- pickAnySplit xs, ys' <- pickN (n - 1) ys]
 
-data Tree a = Leaf a | Branch a [Tree a] deriving (Show, Eq, Ord)
+data Tree a = Branch {_value :: a, _children :: [Tree a]} deriving (Show, Eq, Ord)
+
+-- data Tree a = Leaf a | Branch a [Tree a] deriving (Show, Eq, Ord)
 
 instance Functor Tree where
-  fmap f (Leaf a) = Leaf (f a)
+  -- fmap f (Leaf a) = Leaf (f a)
   fmap f (Branch a xs) = Branch (f a) (map (fmap f) xs)
 
 instance Foldable Tree where
-  foldMap f (Leaf a) = f a
+  -- foldMap f (Leaf a) = f a
   foldMap f (Branch a xs) = f a `mappend` foldMap (foldMap f) xs
 
 instance Traversable Tree where
-  traverse f (Leaf a) = Leaf <$> f a
+  -- traverse f (Leaf a) = Leaf <$> f a
   traverse f (Branch a xs) = Branch <$> f a <*> traverse (traverse f) xs
 
 data Direction = North | East | South | West deriving (Show, Eq, Ord)
@@ -125,6 +129,12 @@ firstCycle' = g 0 Map.empty
       Nothing -> g (i + 1) (Map.insert x i s) xs
       Just y -> Just (i - y, y, x)
 
+calcLargeCycleN :: ([a] -> Maybe (Int, Int, a)) -> Int -> [a] -> Maybe a
+calcLargeCycleN f n xs = case f xs of
+  Nothing -> Nothing
+  Just (_, i, _) | n <= i -> Just $ xs !! n
+  Just (c, i, a) -> let n' = ((n - i) `mod` c) + i  in Just $ xs !! n'
+
 firstRepeat' :: (Ord a) => [a] -> Maybe (Int, a)
 firstRepeat' = g 0 Set.empty
   where
@@ -155,7 +165,9 @@ mapFirst f (a, c) = (f a, c)
 third :: (a, b, c) -> c
 third (_, _, x) = x
 
-data KnotList = KnotList {focus :: Int, list :: S.Seq Int} deriving (Show)
+data KnotList = KnotList {_focus :: Int, _list :: S.Seq Int} deriving (Show)
+
+makeLenses ''KnotList
 
 twistKnotList :: Int -> KnotList -> KnotList
 twistKnotList i (KnotList f l)
@@ -171,12 +183,13 @@ twistKnotList i (KnotList f l)
   where
     len = S.length l
 
+moveFocus :: Int -> KnotList -> KnotList
+moveFocus i l = l {_focus = (l._focus + i) `mod` S.length l._list}
+
 knotHash :: String -> String
 knotHash s =
   let inputSuffix = [17, 31, 73, 47, 23]
       initSeq = KnotList 0 $ S.fromList [0 .. 255]
-      moveFocus :: Int -> KnotList -> KnotList
-      moveFocus i l = l {focus = (l.focus + i) `mod` S.length l.list}
       step :: Int -> Int -> KnotList -> KnotList
       step skip i = moveFocus (skip + i) . twistKnotList i
       run :: [Int] -> KnotList -> KnotList
@@ -188,7 +201,7 @@ knotHash s =
       l = map ord s ++ inputSuffix
       list = take (length l * 64) $ cycle l
       k = run list initSeq
-   in process k.list
+   in process k._list
 
 baseNToInteger :: Integer -> String -> Integer
 baseNToInteger n = foldl' (\acc x -> (n * acc) + fromIntegral (digitToInt x)) 0
@@ -268,7 +281,7 @@ sumVariants target choices
   | target == 0 = [[]]
   | target /= 0 && null choices = []
   | otherwise = do
-      (a : t) <- init $ tails $ choices
+      (a : t) <- init $ tails choices
       b <- sumVariants (target - a) t
       return (a : b)
 
@@ -437,7 +450,7 @@ pick :: Int -> [a] -> [[a]]
 pick n l
   | n <= 0 = pure []
   | otherwise = do
-      (x, xs) <- mapMaybe uncons $ tails l
+      (x, xs) <- mapMaybe Data.List.uncons $ tails l
       (x :) <$> pick (n - 1) xs
 
 extEuc :: (Integral a) => a -> a -> (a, a, a)
