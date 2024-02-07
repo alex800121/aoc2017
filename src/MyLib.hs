@@ -1,10 +1,10 @@
-{-# LANGUAGE DeriveFoldable #-}
-{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeOperators #-}
 
 module MyLib where
 
@@ -26,6 +26,7 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Void (Void)
 import Debug.Trace
+import GHC.IsList
 import Text.Megaparsec
 import Text.Megaparsec.Char (space)
 import Text.Megaparsec.Char.Lexer (decimal, signed)
@@ -133,7 +134,7 @@ calcLargeCycleN :: ([a] -> Maybe (Int, Int, a)) -> Int -> [a] -> Maybe a
 calcLargeCycleN f n xs = case f xs of
   Nothing -> Nothing
   Just (_, i, _) | n <= i -> Just $ xs !! n
-  Just (c, i, a) -> let n' = ((n - i) `mod` c) + i  in Just $ xs !! n'
+  Just (c, i, a) -> let n' = ((n - i) `mod` c) + i in Just $ xs !! n'
 
 firstRepeat' :: (Ord a) => [a] -> Maybe (Int, a)
 firstRepeat' = g 0 Set.empty
@@ -197,7 +198,7 @@ knotHash s =
         where
           l = zip [0 ..] i
       process :: S.Seq Int -> String
-      process = map intToDigit . concatMap ((\x -> [x `div` 16, x `mod` 16]) . foldl1 xor) . chunksOf 16 . toList
+      process = map intToDigit . concatMap ((\x -> [x `div` 16, x `mod` 16]) . foldl1 xor) . chunksOf 16 . Data.Foldable.toList
       l = map ord s ++ inputSuffix
       list = take (length l * 64) $ cycle l
       k = run list initSeq
@@ -329,7 +330,17 @@ deriving instance (Ord a) => Ord (Vec n a)
 
 deriving instance Functor (Vec n)
 
-deriving instance Foldable (Vec n)
+-- deriving instance Foldable (Vec n)
+
+-- deriving instance Traversable (Vec n)
+
+instance Foldable (Vec n) where
+  foldr _ b Nil = b
+  foldr f b (Cons x xs) = foldr f (f x b) xs
+
+instance Traversable (Vec n) where
+  traverse _ Nil = pure Nil
+  traverse f (Cons x xs) = Cons <$> f x <*> traverse f xs
 
 instance Show Nat where
   show n = show' 0 n
@@ -349,12 +360,6 @@ instance (Show a) => Show (Vec n a) where
       show' :: (Show a) => Vec n a -> String
       show' Nil = ">"
       show' (Cons y ys) = ',' : show y ++ show' ys
-
--- instance Functor (Vec 'Z) where
---   fmap _ Nil = Nil
-
--- instance Functor (Vec n) => Functor (Vec ('S n)) where
---   fmap f (Cons x xs) = Cons (f x) (fmap f xs)
 
 instance Applicative (Vec 'Z) where
   pure _ = Nil
@@ -379,6 +384,17 @@ instance (Num a, Num (Vec n a), Applicative (Vec n)) => Num (Vec ('S n) a) where
   signum (Cons x xs) = Cons (signum x) (signum xs)
   fromInteger = pure . fromInteger
   negate (Cons x xs) = Cons (negate x) (negate xs)
+
+instance IsList (Vec Z a) where
+  type Item (Vec Z a) = a
+  fromList _ = Nil
+  toList _ = []
+
+instance (Item (Vec n a) ~ a, IsList (Vec n a)) => IsList (Vec (S n) a) where
+  type Item (Vec (S n) a) = a
+  fromList (x : xs) = Cons x (fromList xs)
+  fromList [] = error "The list ran out of items"
+  toList (Cons x xs) = x : GHC.IsList.toList xs
 
 manhattan :: (Num a) => Vec n a -> a
 manhattan = sum . fmap abs
