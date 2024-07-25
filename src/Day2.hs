@@ -1,4 +1,6 @@
 module Day2 where
+import Paths_AOC2017
+import Paths_AOC2017
 import Data.List (find)
 import Data.Maybe (mapMaybe)
 
@@ -10,6 +12,6 @@ day2b (x : xs)
   | otherwise = day2b xs
 day2 :: IO ()
 day2 = do
-  input <- map (map (read @Int) . words) . lines <$> readFile "input/input2.txt"
+  input <- map (map (read @Int) . words) . lines <$> (getDataDir >>= readFile . (++ "/input/input2.txt"))
   print $ sum $ map ((-) <$> maximum <*> minimum) input
   print $ sum $ mapMaybe (fmap fst . day2b) input

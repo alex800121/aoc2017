@@ -1,5 +1,6 @@
 module Day16 where
 
+import Paths_AOC2017
 import Data.Char (chr, ord)
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as IM
@@ -42,7 +43,7 @@ step input initPos = foldl' (flip (readIns (length $ fst initPos))) initPos inpu
 
 day16 :: IO ()
 day16 = do
-  input <- splitOn "," . init <$> readFile "input/input16.txt"
+  input <- splitOn "," . init <$> (getDataDir >>= readFile . (++ "/input/input16.txt"))
   -- input <- splitOn "," . init <$> readFile "input/test16.txt"
   putStrLn $ fromPos $ step input initPos'
   -- print $ firstCycle' $ map fromPos $ iterate (step input) initPos'

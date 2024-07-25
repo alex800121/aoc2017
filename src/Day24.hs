@@ -1,5 +1,7 @@
 module Day24 where
 
+import Paths_AOC2017
+import Paths_AOC2017
 import Control.Applicative ((<|>))
 import Control.Monad (guard)
 import Data.List (delete, sort)
@@ -27,7 +29,7 @@ buildBridge c p =
 
 day24 :: IO ()
 day24 = do
-  input <- sort . map (sort . map (read @Int) . splitOn "/") . lines <$> readFile "input/input24.txt"
+  input <- sort . map (sort . map (read @Int) . splitOn "/") . lines <$> (getDataDir >>= readFile . (++ "/input/input24.txt"))
   let b = buildBridge input 0
   print $ maximum $ map (sum . map sum) b
   print $ sum . map sum $ maximumBy (\x y -> (compare `on` length) x y <> (compare `on` sum . map sum) x y) b

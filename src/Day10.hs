@@ -1,5 +1,6 @@
 module Day10 where
 
+import Paths_AOC2017
 import Control.Lens (over, view)
 import Data.Bits (Bits (..))
 import Data.Char

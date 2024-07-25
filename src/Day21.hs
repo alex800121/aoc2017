@@ -1,5 +1,7 @@
 module Day21 where
 
+import Paths_AOC2017
+import Paths_AOC2017
 import Data.Array.IArray (Array)
 import qualified Data.Array.IArray as A
 import Data.Bifunctor (Bifunctor (..))
@@ -154,7 +156,7 @@ quick r0 r33 n ax
 
 day21 :: IO ()
 day21 = do
-  input <- Map.unions . map readInput . lines <$> readFile "input/input21.txt"
+  input <- Map.unions . map readInput . lines <$> (getDataDir >>= readFile . (++ "/input/input21.txt"))
   print $ length $ filter (== '#') $ printArray $ (!! 5) $ iterate (step' input) initArray
   print
     . sum
