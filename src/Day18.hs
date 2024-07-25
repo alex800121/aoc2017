@@ -1,5 +1,7 @@
 module Day18 where
 
+import Paths_AOC2017
+import Paths_AOC2017
 import Control.Monad.Trans.State (State, evalState, get, modify, put, runState, state)
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -93,7 +95,7 @@ data Program = P
 
 day18 :: IO ()
 day18 = do
-  input <- V.fromList . mapMaybe (parseMaybe readIns) . lines <$> readFile "input/input18.txt"
+  input <- V.fromList . mapMaybe (parseMaybe readIns) . lines <$> (getDataDir >>= readFile . (++ "/input/input18.txt"))
   print $ evalState (step input) (0, ([], Map.empty))
   print
     . length

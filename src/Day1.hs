@@ -1,5 +1,6 @@
 module Day1 where
 
+import Paths_AOC2017
 import Data.Char (digitToInt)
 import Data.List (nub)
 import Data.List.Split (divvy)
@@ -14,6 +15,6 @@ day1b s = zipWith (\x y -> if x == y then digitToInt y else 0) s s'
 
 day1 :: IO ()
 day1 = do
-  input <- init <$> readFile "input/input1.txt"
+  input <- init <$> (getDataDir >>= readFile . (++ "/input/input1.txt"))
   print $ day1a input
   print $ sum $ day1b input

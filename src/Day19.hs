@@ -1,5 +1,7 @@
 module Day19 where
 
+import Paths_AOC2017
+import Paths_AOC2017
 import Data.Array.Unboxed (UArray)
 import qualified Data.Array.Unboxed as A
 import Data.Foldable (find)
@@ -32,7 +34,7 @@ day19a m (i, d)
 
 day19 :: IO ()
 day19 = do
-  input <- drawArray @UArray . lines <$> readFile "input/input19.txt"
+  input <- drawArray @UArray . lines <$> (getDataDir >>= readFile . (++ "/input/input19.txt"))
   let Just start = fst <$> find ((&&) <$> (== '|') . snd <*> (== 0) . snd . fst) (A.assocs input)
   putStrLn $ filter isAlpha $ day19a input (start, South)
   print $ length $ day19a input (start, South)

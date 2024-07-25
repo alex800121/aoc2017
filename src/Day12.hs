@@ -1,5 +1,6 @@
 module Day12 where
 
+import Paths_AOC2017
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as IM
 import Data.Maybe (mapMaybe)
@@ -37,7 +38,7 @@ pipeGroups p
 
 day12 :: IO ()
 day12 = do
-  input <- IM.unions . mapMaybe (parseMaybe readInput) . lines <$> readFile "input/input12.txt"
+  input <- IM.unions . mapMaybe (parseMaybe readInput) . lines <$> (getDataDir >>= readFile . (++ "/input/input12.txt"))
   -- input <- IM.unions . mapMaybe (parseMaybe readInput) . lines <$> readFile "input/test12.txt"
   print $ length $ groupPipe 0 input
   print $ length $ pipeGroups input
