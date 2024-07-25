@@ -1,5 +1,7 @@
 module Day7 where
 
+import Paths_AOC2017
+import Control.Lens
 import Control.Monad (void)
 import Data.Char (isAlpha)
 import Data.Function (on)
@@ -9,7 +11,7 @@ import qualified Data.Map as Map
 import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Set (Set)
 import qualified Data.Set as Set
-import MyLib (Parser, Tree (..), signedInteger)
+import MyLib 
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import Debug.Trace
@@ -57,7 +59,7 @@ traceFalse diff (Branch a ts) = case next of
 
 day7 :: IO ()
 day7 = do
-  input <- Map.unions . mapMaybe (parseMaybe readInput) . lines <$> readFile "input/input7.txt"
+  input <- Map.unions . mapMaybe (parseMaybe readInput) . lines <$> (getDataDir >>= readFile . (++ "/input/input7.txt"))
   -- input <- Map.unions . mapMaybe (parseMaybe readInput) . lines <$> readFile "input/test7.txt"
   let t = buildTree input
   putStrLn $ fst $ _value t

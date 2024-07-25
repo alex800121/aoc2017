@@ -3,12 +3,13 @@ module Day20 where
 import Data.List (elemIndex, findIndex)
 import Data.List.Split (divvy)
 import Data.Map (Map)
-import qualified Data.Map as Map
+import Data.Map qualified as Map
 import Data.Maybe (mapMaybe)
 import Data.Set (Set)
-import qualified Data.Set as Set
-import qualified GHC.IsList as IL
+import Data.Set qualified as Set
+import GHC.IsList qualified as IL
 import MyLib (Nat (..), Parser, SNat (..), Vec (..), pick, signedInteger, vRead, vZipWith)
+import Paths_AOC2017
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
@@ -90,7 +91,7 @@ day20b input = go allDiverge input
 
 day20 :: IO ()
 day20 = do
-  input <- mapMaybe (parseMaybe starParser) . lines <$> readFile "input/input20.txt"
+  input <- mapMaybe (parseMaybe starParser) . lines <$> (getDataDir >>= readFile . (++ "/input/input20.txt"))
   -- input <- mapMaybe (parseMaybe starParser) . lines <$> readFile "input/test20.txt"
   let a = map (sum . fmap abs . (`vRead` 0)) input
       m = minimum a

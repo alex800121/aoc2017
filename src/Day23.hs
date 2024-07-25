@@ -1,5 +1,7 @@
 module Day23 where
 
+import Paths_AOC2017
+import Paths_AOC2017
 import Control.Monad.ST.Lazy (ST, runST)
 import Data.Char (chr, ord)
 import Data.Maybe (fromMaybe, mapMaybe)
@@ -81,7 +83,7 @@ runIns readIns v r = do
 a = V.fromList [1,107900,124900,2,53950,1,0,0,15,0]
 day23 :: IO ()
 day23 = do
-  input <- V.fromList . mapMaybe (parseMaybe insParser) . lines <$> readFile "input/input23.txt"
+  input <- V.fromList . mapMaybe (parseMaybe insParser) . lines <$> (getDataDir >>= readFile . (++ "/input/input23.txt"))
   -- print input
   print $ runST $ V.thaw initReg >>= \v -> runIns readIns input v >> V.freeze v
   print $ length $ filter ((> 2) . length . factors)  [107900, 107900+17 .. 107900+ 17000]

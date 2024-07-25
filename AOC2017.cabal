@@ -1,4 +1,4 @@
-cabal-version:      3.0
+cabal-version:      3.4
 name:               AOC2017
 version:            0.1.0.0
 
@@ -22,7 +22,7 @@ maintainer:         alex800121@hotmail.com
 extra-source-files: CHANGELOG.md
 
 common shared
-    default-language: Haskell2010
+    default-language: GHC2021
     build-depends:
         base >= 4.18,
         megaparsec,
@@ -39,14 +39,14 @@ common shared
         lens,
         unordered-containers,
         hashable,
-        random
+        random,
+        AOC
     default-extensions: TypeFamilies, OverloadedRecordDot, TypeApplications, DataKinds, LambdaCase
     ghc-options: -O2
 
 library
     import: shared
     exposed-modules:
-        MyLib,
         Day1,
         Day2,
         Day3,
@@ -71,18 +71,17 @@ library
         Day22,
         Day23,
         Day24,
-        Day25,
-        Main
-
+        Day25
     -- Modules included in this library but not exported.
-    -- other-modules:
+    other-modules:
+        Paths_AOC2017
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
     hs-source-dirs:   src, app
 
 
-executable AOC2023
+executable AOC2017
     import: shared
 
     main-is:          Main.hs
@@ -114,7 +113,7 @@ executable AOC2023
         Day23,
         Day24,
         Day25,
-        MyLib
+        Paths_AOC2017
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:

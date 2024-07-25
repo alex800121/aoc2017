@@ -1,5 +1,7 @@
 module Day3 where
 
+import Paths_AOC2017
+import Paths_AOC2017
 import Data.Bifunctor (Bifunctor (..))
 import Data.List (find, findIndex)
 import Data.Map.Lazy (Map)
@@ -37,7 +39,7 @@ day3b xs = (head xs, 1) : go (Map.singleton (head xs) 1) (tail xs)
 
 day3 :: IO ()
 day3 = do
-  -- input <- readFile "input/input3.txt"
+  -- input <- (getDataDir >>= readFile . (++ "/input/input3.txt"))
   print $ (+) <$> abs . fst <*> abs . snd $ day3a input
   let l = day3b $ map day3a [1 ..]
   print $ snd <$> find ((> input) . snd) l

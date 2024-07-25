@@ -1,5 +1,7 @@
 module Day11 where
 
+import Paths_AOC2017
+import Paths_AOC2017
 import Data.List.Split (splitOn)
 import Data.Bifunctor (Bifunctor(..))
 import Data.Foldable (Foldable(..))
@@ -36,7 +38,7 @@ manhattanHex (x, y) (a, b)
 
 day11 :: IO ()
 day11 = do
-  input <- splitOn "," . init <$> readFile "input/input11.txt"
+  input <- splitOn "," . init <$> (getDataDir >>= readFile . (++ "/input/input11.txt"))
   -- input <- splitOn "," . init <$> readFile "input/test11.txt"
   print $ manhattanHex (0, 0) $ foldl' (flip hexMove) (0, 0) input
   print $ maximum $ map (manhattanHex (0, 0)) $ scanl' (flip hexMove) (0, 0) input

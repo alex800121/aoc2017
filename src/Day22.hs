@@ -1,5 +1,7 @@
 module Day22 where
 
+import Paths_AOC2017
+import Paths_AOC2017
 import Data.Bifunctor (Bifunctor (..))
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -44,7 +46,7 @@ step' ((i@(x, y), d), acc, (weakened, infected, flagged))
 
 day22 :: IO ()
 day22 = do
-  input <- lines <$> readFile "input/input22.txt"
+  input <- lines <$> (getDataDir >>= readFile . (++ "/input/input22.txt"))
   -- input <- lines <$> readFile "input/test22.txt"
   let start = (length (head input) `div` 2, length input `div` 2)
       initVirus = (start, North)

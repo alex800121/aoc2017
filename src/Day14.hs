@@ -1,5 +1,6 @@
 module Day14 where
 
+import Paths_AOC2017
 import Data.Array.Unboxed (Array)
 import qualified Data.Array.Unboxed as A
 import Data.Bifunctor (Bifunctor (..))
@@ -35,6 +36,6 @@ calcAreas a = go [] Set.empty (Set.singleton start) a'
 
 day14 :: IO ()
 day14 = do
-  -- input <- readFile "input/input14.txt"
+  -- input <- (getDataDir >>= readFile . (++ "/input/input14.txt"))
   print $ length $ filter (== '#') $ A.elems $ calcArray input
   print $ length $ calcAreas $ calcArray input

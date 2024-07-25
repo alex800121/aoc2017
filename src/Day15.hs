@@ -1,5 +1,6 @@
 module Day15 where
 
+import Paths_AOC2017
 import Data.Bits
 import Data.List (scanl')
 
@@ -35,6 +36,6 @@ bs' = filter ((>= 3) . countTrailingZeros @Int) bs
 
 day15 :: IO ()
 day15 = do
-  -- input <- readFile "input/input15.txt"
+  -- input <- (getDataDir >>= readFile . (++ "/input/input15.txt"))
   print $ length $ filter id $ take (n + 1) $ zipWith (==) as bs
   print $ length $ filter id $ take (n' + 1) $ zipWith (==) as' bs'

@@ -1,5 +1,7 @@
 module Day5 where
 
+import Paths_AOC2017
+import Paths_AOC2017
 import Control.Monad.ST (ST, runST)
 import qualified Data.Vector as V
 import Data.Vector.Mutable (STVector)
@@ -15,7 +17,7 @@ step n i acc v =
 
 day5 :: IO ()
 day5 = do
-  input <- map (read @Int) . lines <$> readFile "input/input5.txt"
+  input <- map (read @Int) . lines <$> (getDataDir >>= readFile . (++ "/input/input5.txt"))
   -- input <- map (read @Int) . lines <$> readFile "input/test5.txt"
   print $ runST (step 1 0 0 =<< V.thaw (V.fromList input))
   print $ runST (step (-1) 0 0 =<< V.thaw (V.fromList input))

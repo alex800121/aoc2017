@@ -1,5 +1,7 @@
 module Day17 where
 
+import Paths_AOC2017
+import Paths_AOC2017
 import Data.Sequence (Seq (..))
 import qualified Data.Sequence as Seq
 import Data.Foldable (Foldable(..))

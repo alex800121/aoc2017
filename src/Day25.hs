@@ -1,5 +1,7 @@
 module Day25 where
 
+import Paths_AOC2017
+import Paths_AOC2017
 import Control.Monad.ST.Strict (ST, runST)
 import Data.Char (isAlpha)
 import Data.Map (Map)
@@ -119,5 +121,5 @@ day25a rules n g = runST $ do
 
 day25 :: IO ()
 day25 = do
-  (target, rules, initState) <- fromJust . parseMaybe inputParser <$> readFile "input/input25.txt"
+  (target, rules, initState) <- fromJust . parseMaybe inputParser <$> (getDataDir >>= readFile . (++ "/input/input25.txt"))
   print $ calc $ _tape $ day25a rules target initState

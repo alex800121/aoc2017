@@ -1,5 +1,7 @@
 module Day9 where
 
+import Paths_AOC2017
+import Paths_AOC2017
 import MyLib (Parser)
 import Text.Megaparsec
 import Text.Megaparsec.Char
@@ -41,7 +43,7 @@ countGarbage (Gar (Garbage x)) = length x
 countGarbage (Gro (Group _ e)) = sum (map countGarbage e)
 day9 :: IO ()
 day9 = do
-  input <- readFile "input/input9.txt"
+  input <- (getDataDir >>= readFile . (++ "/input/input9.txt"))
   -- input <- readFile "input/test9.txt"
   let input' = parseMaybe (elemParser 1) $ processInput input
   print $ fmap addLevel input'

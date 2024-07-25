@@ -1,5 +1,7 @@
 module Day8 where
 
+import Paths_AOC2017
+import Paths_AOC2017
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
@@ -27,7 +29,7 @@ readRule s m = Map.insertWith (+) r0 (if rule (fromMaybe 0 (m Map.!? r1)) then i
 
 day8 :: IO ()
 day8 = do
-  input <- lines <$> readFile "input/input8.txt"
+  input <- lines <$> (getDataDir >>= readFile . (++ "/input/input8.txt"))
   -- input <- lines <$> readFile "input/test8.txt"
   let (a, b) = first maximum $ foldl' (\(m, n) x -> let m' = readRule x m in (m', max n (maximum m'))) (Map.empty, 0) input
   print a
