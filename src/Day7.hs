@@ -1,7 +1,7 @@
 module Day7 where
 
 import Paths_AOC2017
-import Control.Lens
+import Optics
 import Control.Monad (void)
 import Data.Char (isAlpha)
 import Data.Function (on)

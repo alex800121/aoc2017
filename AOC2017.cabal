@@ -36,8 +36,8 @@ common shared
         pqueue,
         dlist,
         finite-typelits,
-        lens,
         unordered-containers,
+        optics,
         hashable,
         random,
         AOC

@@ -1,15 +1,16 @@
+{-# LANGUAGE OverloadedLabels #-}
+
 module Day22 where
 
-import Paths_AOC2017
-import Paths_AOC2017
 import Data.Bifunctor (Bifunctor (..))
 import Data.Map (Map)
-import qualified Data.Map as Map
+import Data.Map qualified as Map
 import Data.Maybe (fromMaybe)
 import Data.Set (Set)
-import qualified Data.Set as Set
+import Data.Set qualified as Set
 import MyLib (Direction (..), drawGraph, drawMap, toIndex)
-import Control.Lens hiding (Index)
+import Optics hiding (Index)
+import Paths_AOC2017
 
 type M = Map Index [Char]
 
