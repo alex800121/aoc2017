@@ -37,9 +37,15 @@ day3b xs = (head xs, 1) : go (Map.singleton (head xs) 1) (tail xs)
       where
         as = sum $ mapMaybe (acc Map.!?) $ adjacent x
 
-day3 :: IO ()
+day3 :: IO (String, String)
 day3 = do
   -- input <- (getDataDir >>= readFile . (++ "/input/input3.txt"))
-  print $ (+) <$> abs . fst <*> abs . snd $ day3a input
+  let
+   finalAnsa
+    = show $ (+) <$> abs . fst <*> abs . snd $ day3a input
   let l = day3b $ map day3a [1 ..]
-  print $ snd <$> find ((> input) . snd) l
+  
+  let
+   finalAnsb
+    = show $ snd <$> find ((> input) . snd) l
+  pure (finalAnsa, finalAnsb)

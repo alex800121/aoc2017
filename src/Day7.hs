@@ -57,10 +57,16 @@ traceFalse diff (Branch a ts) = case next of
         -- then Just (fst (maximumBy (compare `on` snd) d) - fst (minimumBy (compare `on` snd) d))
         else diff
 
-day7 :: IO ()
+day7 :: IO (String, String)
 day7 = do
   input <- Map.unions . mapMaybe (parseMaybe readInput) . lines <$> (getDataDir >>= readFile . (++ "/input/input7.txt"))
   -- input <- Map.unions . mapMaybe (parseMaybe readInput) . lines <$> readFile "input/test7.txt"
   let t = buildTree input
-  putStrLn $ fst $ _value t
-  print $ traceFalse Nothing $ balanceTree t
+  let
+   finalAnsa
+    = fst $ _value t
+  
+  let
+   finalAnsb
+    = show $ traceFalse Nothing $ balanceTree t
+  pure (finalAnsa, finalAnsb)

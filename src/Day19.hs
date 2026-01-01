@@ -32,9 +32,15 @@ day19a m (i, d)
     iR = i +^ toIndex (succ d)
     xR = m A.! iR
 
-day19 :: IO ()
+day19 :: IO (String, String)
 day19 = do
   input <- drawArray @UArray . lines <$> (getDataDir >>= readFile . (++ "/input/input19.txt"))
   let Just start = fst <$> find ((&&) <$> (== '|') . snd <*> (== 0) . snd . fst) (A.assocs input)
-  putStrLn $ filter isAlpha $ day19a input (start, South)
-  print $ length $ day19a input (start, South)
+  let
+   finalAnsa
+    = filter isAlpha $ day19a input (start, South)
+  
+  let
+   finalAnsb
+    = show $ length $ day19a input (start, South)
+  pure (finalAnsa, finalAnsb)

@@ -93,12 +93,18 @@ data Program = P
   }
   deriving (Show, Eq, Ord)
 
-day18 :: IO ()
+day18 :: IO (String, String)
 day18 = do
   input <- V.fromList . mapMaybe (parseMaybe readIns) . lines <$> (getDataDir >>= readFile . (++ "/input/input18.txt"))
-  print $ evalState (step input) (0, ([], Map.empty))
-  print
+  let
+   finalAnsa
+    = show $ evalState (step input) (0, ([], Map.empty))
+  
+  let
+   finalAnsb
+    = show
     . length
     . concatMap (fst . fst)
     . (\x -> let Just (a, b, _) = firstCycle' x in take (a + b) x)
     $ iterate (run input) (([], P 0 $ Map.singleton 'p' 0), ([], P 0 $ Map.singleton 'p' 1))
+  pure (finalAnsa, finalAnsb)

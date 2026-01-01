@@ -36,9 +36,15 @@ manhattanHex (x, y) (a, b)
     m = abs x'
     n = abs y'
 
-day11 :: IO ()
+day11 :: IO (String, String)
 day11 = do
   input <- splitOn "," . init <$> (getDataDir >>= readFile . (++ "/input/input11.txt"))
   -- input <- splitOn "," . init <$> readFile "input/test11.txt"
-  print $ manhattanHex (0, 0) $ foldl' (flip hexMove) (0, 0) input
-  print $ maximum $ map (manhattanHex (0, 0)) $ scanl' (flip hexMove) (0, 0) input
+  let
+   finalAnsa
+    = show $ manhattanHex (0, 0) $ foldl' (flip hexMove) (0, 0) input
+  
+  let
+   finalAnsb
+    = show $ maximum $ map (manhattanHex (0, 0)) $ scanl' (flip hexMove) (0, 0) input
+  pure (finalAnsa, finalAnsb)

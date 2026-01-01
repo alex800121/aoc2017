@@ -1,0 +1,95 @@
+{-# LANGUAGE PatternSynonyms #-}
+
+module Day22 where
+
+import Control.Monad.ST.Strict (ST, runST)
+import Data.Bifunctor (Bifunctor (..))
+import Data.Map.Strict qualified as Map
+import Data.Vector.Unboxed qualified as V
+import Data.Vector.Unboxed.Mutable (STVector)
+import Data.Vector.Unboxed.Mutable qualified as MV
+import MyLib (drawMap)
+import Paths_AOC2017
+
+type Virus = (Int, Int)
+
+type Index = (Int, Int)
+type State = (Bool, Bool)
+
+fromI (x, y) = x * size + y
+north = fromI (0, -1)
+east = fromI (1, 0)
+south = fromI (0, 1)
+west = fromI (-1, 0)
+
+pre d
+  | d == north = west
+  | d == west = south
+  | d == south = east
+  | d == east = north
+suc d
+  | d == north = east
+  | d == east = south
+  | d == south = west
+  | d == west = north
+
+pattern Clean = (False, False)
+pattern Weakened = (False, True)
+pattern Infected = (True, True)
+pattern Flagged = (True, False)
+
+stepST :: (State -> Int -> Int) -> (State -> State) -> STVector s State -> (Int, Virus) -> ST s (Int, Virus)
+stepST fi fn !ht (!n, (!i, !d)) = do
+  !node <- MV.read ht i
+  let !node' = fn node
+  MV.write ht i node'
+  let
+    !n' = if node' == Infected then n + 1 else n
+    !d' = fi node d
+  pure (n', (i + d', d'))
+
+fST !n g !ht !i
+  | n <= 0 = pure (fst i)
+  | otherwise = fST (n - 1) g ht =<< g ht i
+
+day22a i m = runST $ do
+  ht <- V.thaw m
+  fST 10000 (stepST fi fn) ht (0, i)
+  where
+    fi Clean = pre
+    fi _ = suc
+    fn Clean = Infected
+    fn _ = Clean
+day22b i m = runST $ do
+  ht <- V.thaw m
+  fST 10000000 (stepST fi fn) ht (0, i)
+  where
+    fi Clean = pre
+    fi Weakened = id
+    fi Infected = suc
+    fi Flagged = suc . suc
+    fn Clean = Weakened
+    fn Weakened = Infected
+    fn Infected = Flagged
+    fn Flagged = Clean
+
+size = 500
+
+day22 :: IO (String, String)
+day22 = do
+  input <- lines <$> (getDataDir >>= readFile . (++ "/input/input22.txt"))
+  let start = (length (head input) `div` 2, length input `div` 2)
+      initVirus = (fromI $ bimap (+ (size `div` 2)) (+ (size `div` 2)) start, north)
+      initM = V.create $ do
+        ht <- MV.replicate (size * size) Clean
+        mapM_
+          (\i -> MV.write ht (fromI $ bimap (+ (size `div` 2)) (+ (size `div` 2)) i) Infected)
+          . Map.keys
+          $ drawMap (\case '#' -> Just Infected; _ -> Nothing) input
+        pure ht
+  let
+    finalAnsa =
+      show $ day22a initVirus $ initM
+    finalAnsb =
+      show $ day22b initVirus $ initM
+  pure (finalAnsa, finalAnsb)

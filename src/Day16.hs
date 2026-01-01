@@ -1,50 +1,89 @@
-module Day16 where
+module Day16 (day16) where
 
-import Paths_AOC2017
+import Control.Arrow
+import Control.Monad (foldM, foldM_)
+import Control.Monad.ST.Strict (ST, runST)
+import Data.Bits (Bits (..))
 import Data.Char (chr, ord)
-import Data.IntMap (IntMap)
-import qualified Data.IntMap as IM
-import Data.List (foldl')
-import Data.List.Split (splitOn)
+import Data.List.Split (splitOn, splitOneOf)
 import Data.Tuple (swap)
-import MyLib (firstCycle', calcLargeCycleN)
+import Data.Vector.Unboxed qualified as V
+import Data.Vector.Unboxed.Mutable (STVector)
+import Data.Vector.Unboxed.Mutable qualified as MV
+import Data.Word (Word8)
+import Debug.Trace
+import MyLib (calcLargeCycleN, firstCycle')
+import Paths_AOC2017
 
-type Pos = (IntMap Int, IntMap Int)
+type V s = (STVector s Int, STVector s Int)
 
 fromChar :: Char -> Int
 fromChar = subtract (ord 'a') . ord
 
-initPos = IM.fromList [(x, x) | x <- [0 .. 15]]
-
-initPos' = (initPos, initPos)
-
--- initPos = IM.fromList [(x, x) | x <- [0 .. 4]]
+initV :: ST s (V s)
+initV = (,) <$> MV.generate 16 fromIntegral <*> MV.generate 16 fromIntegral
 
 n = 1000000000
 
-fromPos :: Pos -> String
-fromPos = map (chr . (+ ord 'a')) . IM.elems . snd
-
-readIns :: Int -> String -> Pos -> Pos
-readIns l ('s' : xs) (chrPos, posChr) = (IM.map ((`mod` l) . (+ read @Int xs)) chrPos, IM.mapKeys ((`mod` l) . (+ read @Int xs)) posChr)
-readIns l ('x' : xs) (chrPos, posChr) = (IM.union (IM.fromList y') chrPos, IM.union (IM.fromList y) posChr)
+readInput :: String -> ST s (V s)
+readInput input = do
+  v@(v0, _) <- initV
+  l <- MV.generate 16 id
+  offset <- foldM (f l v) 0 ls
+  rotateL (offset `mod` 16) v0
+  pure v
   where
-    [(posA, chrA), (posB, chrB)] = map (((,) <$> id <*> (posChr IM.!)) . read @Int) $ splitOn "/" xs
-    y = [(posA, chrB), (posB, chrA)]
-    y' = map swap y
-readIns l ('p' : xs) (chrPos, posChr) = (IM.union (IM.fromList y') chrPos, IM.union (IM.fromList y) posChr)
+    rotateL n v = do
+      v' <- MV.clone v
+      let (v0', v1') = MV.splitAt n v'
+          (v0, v1) = MV.splitAt (16 - n) v
+      MV.copy v0 v1'
+      MV.copy v1 v0'
+    ls = map (splitOn "/") $ splitOn "," input
+    f l (v0, v1) offset =
+      \case
+        ['x' : a, b] -> MV.swap v0 ((offset + read a) `mod` 16) ((offset + read b) `mod` 16) >> pure offset
+        ['s' : a] -> pure (offset + 16 - read a)
+        ['p' : [ca], [cb]] -> do
+          let ia = fromChar ca
+              ib = fromChar cb
+          a <- MV.read l ia
+          b <- MV.read l ib
+          MV.swap v1 a b
+          MV.swap l ia ib
+          pure offset
+
+solidify :: V s -> ST s String
+solidify (v0, v1) = do
+  MV.foldrM (\i acc -> MV.read v1 i >>= \c -> pure $ chr (c + ord 'a') : acc) "" v0
+
+danceWith :: V s -> V s -> ST s ()
+danceWith i@(i0, i1) v@(v0, v1) = do
+  MV.imapM_ (f v0 i0) i0
+  MV.imapM_ (f v1 i1) i1
   where
-    [(posA, chrA), (posB, chrB)] = map (((,) <$> (chrPos IM.!) <*> id) . fromChar . head) $ splitOn "/" xs
-    y = [(posA, chrB), (posB, chrA)]
-    y' = map swap y
+    f v i a x = MV.read v x >>= MV.write i a
 
-step :: [String] -> Pos -> Pos
-step input initPos = foldl' (flip (readIns (length $ fst initPos))) initPos input
+danceN :: Word -> V s -> V s -> ST s String
+danceN !n i v
+  | n <= 0 = solidify i
+  | n `testBit` 0 = do
+      vc <- clonePair v
+      danceWith i vc
+      danceWith v vc
+      danceN (n `shiftR` 1) i v
+  | otherwise = do
+      vc <- clonePair v
+      danceWith v vc
+      danceN (n `shiftR` 1) i v
 
-day16 :: IO ()
+clonePair (v0, v1) = (,) <$> MV.clone v0 <*> MV.clone v1
+
+day16 :: IO (String, String)
 day16 = do
-  input <- splitOn "," . init <$> (getDataDir >>= readFile . (++ "/input/input16.txt"))
-  -- input <- splitOn "," . init <$> readFile "input/test16.txt"
-  putStrLn $ fromPos $ step input initPos'
-  -- print $ firstCycle' $ map fromPos $ iterate (step input) initPos'
-  print $ calcLargeCycleN firstCycle' n $ map fromPos $ iterate (step input) initPos'
+  input <- init <$> (getDataDir >>= readFile . (++ "/input/input16.txt"))
+  let
+    finalAnsa = runST (readInput input >>= solidify)
+  let
+    finalAnsb = runST (initV >>= \i -> readInput input >>= danceN n i)
+  pure (finalAnsa, finalAnsb)

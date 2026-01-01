@@ -1,123 +1,156 @@
-cabal-version:      3.4
-name:               AOC2017
-version:            0.1.0.0
-
+cabal-version: 3.4
+name: AOC2017
+version: 0.1.0.0
 -- A short (one-line) description of the package.
 -- synopsis:
-
 -- A longer description of the package.
 -- description:
-
 -- A URL where users can report bugs.
 -- bug-reports:
-
 -- The license under which the package is released.
 -- license:
-author:             alex800121
-maintainer:         alex800121@hotmail.com
-
+author: alex800121
+maintainer: alex800121@hotmail.com
 -- A copyright notice.
 -- copyright:
 -- category:
 extra-source-files: CHANGELOG.md
 
 common shared
-    default-language: GHC2021
-    build-depends:
-        base >= 4.18,
-        megaparsec,
-        parser-combinators,
-        transformers,
-        containers,
-        vector,
-        split,
-        array,
-        multiset,
-        pqueue,
-        dlist,
-        finite-typelits,
-        unordered-containers,
-        optics,
-        hashable,
-        random,
-        AOC
-    default-extensions: TypeFamilies, OverloadedRecordDot, TypeApplications, DataKinds, LambdaCase
-    ghc-options: -O2
+  default-language: GHC2021
+  build-depends:
+    AOC,
+    array,
+    base >=4.18,
+    containers,
+    wide-word,
+    disjoint-containers,
+    dlist,
+    parallel,
+    finite-typelits,
+    megaparsec,
+    multiset,
+    optics,
+    parser-combinators,
+    pqueue,
+    random,
+    split,
+    transformers,
+    unordered-containers,
+    vector,
+
+  default-extensions:
+    DataKinds
+    LambdaCase
+    OverloadedRecordDot
+    TypeApplications
+    TypeFamilies
+    MultiWayIf
+    MultilineStrings
+
+  ghc-options: -O2
+
+benchmark main-bench
+  type: exitcode-stdio-1.0
+  hs-source-dirs: benchmark
+  main-is: AOCBench.hs
+  build-depends:
+    AOC,
+    AOC2017,
+    base,
+    criterion,
+
+  default-language: GHC2021
+  -- ghc-options: -threaded -rtsopts "-with-rtsopts=-N -T"  -O2
+  ghc-options:
+    -threaded
+    -rtsopts
+    "-with-rtsopts=-N -T"
+    -O2
 
 library
-    import: shared
-    exposed-modules:
-        Day1,
-        Day2,
-        Day3,
-        Day4,
-        Day5,
-        Day6,
-        Day7,
-        Day8,
-        Day9,
-        Day10,
-        Day11,
-        Day12,
-        Day13,
-        Day14,
-        Day15,
-        Day16,
-        Day17,
-        Day18,
-        Day19,
-        Day20,
-        Day21,
-        Day22,
-        Day23,
-        Day24,
-        Day25
-    -- Modules included in this library but not exported.
-    other-modules:
-        Paths_AOC2017
+  import: shared
+  exposed-modules:
+    Day1
+    Day10
+    Day11
+    Day12
+    Day13
+    Day14
+    Day15
+    Day16
+    Day17
+    Day18
+    Day19
+    Day2
+    Day20
+    Day21
+    Day22
+    Day23
+    Day24
+    Day25
+    Day3
+    Day4
+    Day5
+    Day6
+    Day7
+    Day8
+    Day9
+    Solve
 
-    -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
-    hs-source-dirs:   src, app
+  -- Modules included in this library but not exported.
+  other-modules:
+    Paths_AOC2017
 
+  -- LANGUAGE extensions used by modules in this package.
+  -- other-extensions:
+  hs-source-dirs:
+    src
+    app
 
 executable AOC2017
-    import: shared
+  import: shared
+  main-is: Main.hs
+  -- Modules included in this executable, other than Main.
+  other-modules:
+    Day1
+    Day10
+    Day11
+    Day12
+    Day13
+    Day14
+    Day15
+    Day16
+    Day17
+    Day18
+    Day19
+    Day2
+    Day20
+    Day21
+    Day22
+    Day23
+    Day24
+    Day25
+    Day3
+    Day4
+    Day5
+    Day6
+    Day7
+    Day8
+    Day9
+    Paths_AOC2017
+    Solve
 
-    main-is:          Main.hs
+  -- LANGUAGE extensions used by modules in this package.
+  -- other-extensions:
+  -- build-depends:
+  --     AOC2020
+  hs-source-dirs:
+    app
+    src
 
-    -- Modules included in this executable, other than Main.
-    other-modules:
-        Day1,
-        Day2,
-        Day3,
-        Day4,
-        Day5,
-        Day6,
-        Day7,
-        Day8,
-        Day9,
-        Day10,
-        Day11,
-        Day12,
-        Day13,
-        Day14,
-        Day15,
-        Day16,
-        Day17,
-        Day18,
-        Day19,
-        Day20,
-        Day21,
-        Day22,
-        Day23,
-        Day24,
-        Day25,
-        Paths_AOC2017
-
-    -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
-    -- build-depends:
-    --     AOC2020
-    
-    hs-source-dirs:   app, src
+  ghc-options:
+    -threaded
+    -rtsopts
+    "-with-rtsopts=-N -T"
+    -O2

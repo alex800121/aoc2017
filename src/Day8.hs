@@ -27,10 +27,16 @@ readRule s m = Map.insertWith (+) r0 (if rule (fromMaybe 0 (m Map.!? r1)) then i
         )
         (read @Int n1')
 
-day8 :: IO ()
+day8 :: IO (String, String)
 day8 = do
   input <- lines <$> (getDataDir >>= readFile . (++ "/input/input8.txt"))
   -- input <- lines <$> readFile "input/test8.txt"
   let (a, b) = first maximum $ foldl' (\(m, n) x -> let m' = readRule x m in (m', max n (maximum m'))) (Map.empty, 0) input
-  print a
-  print b
+  let
+   finalAnsa
+    = show a
+  
+  let
+   finalAnsb
+    = show b
+  pure (finalAnsa, finalAnsb)

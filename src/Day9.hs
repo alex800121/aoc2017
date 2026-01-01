@@ -41,10 +41,16 @@ addLevel (Gro (Group n e)) = n + sum (map addLevel e)
 countGarbage :: Elem -> Int
 countGarbage (Gar (Garbage x)) = length x
 countGarbage (Gro (Group _ e)) = sum (map countGarbage e)
-day9 :: IO ()
+day9 :: IO (String, String)
 day9 = do
   input <- (getDataDir >>= readFile . (++ "/input/input9.txt"))
   -- input <- readFile "input/test9.txt"
   let input' = parseMaybe (elemParser 1) $ processInput input
-  print $ fmap addLevel input'
-  print $ fmap countGarbage input'
+  let
+   finalAnsa
+    = show $ fmap addLevel input'
+  
+  let
+   finalAnsb
+    = show $ fmap countGarbage input'
+  pure (finalAnsa, finalAnsb)

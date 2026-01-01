@@ -36,9 +36,15 @@ pipeGroups p
     s = groupPipe (fst $ IM.findMin p) p
     p' = IM.mapMaybeWithKey (\k a -> if k `Set.member` s then Nothing else Just (a Set.\\ s)) p
 
-day12 :: IO ()
+day12 :: IO (String, String)
 day12 = do
   input <- IM.unions . mapMaybe (parseMaybe readInput) . lines <$> (getDataDir >>= readFile . (++ "/input/input12.txt"))
   -- input <- IM.unions . mapMaybe (parseMaybe readInput) . lines <$> readFile "input/test12.txt"
-  print $ length $ groupPipe 0 input
-  print $ length $ pipeGroups input
+  let
+   finalAnsa
+    = show $ length $ groupPipe 0 input
+  
+  let
+   finalAnsb
+    = show $ length $ pipeGroups input
+  pure (finalAnsa, finalAnsb)

@@ -13,8 +13,14 @@ day1b s = zipWith (\x y -> if x == y then digitToInt y else 0) s s'
   where
     s' = uncurry (++) $ swap $ splitAt (length s `div` 2) s
 
-day1 :: IO ()
+day1 :: IO (String, String)
 day1 = do
   input <- init <$> (getDataDir >>= readFile . (++ "/input/input1.txt"))
-  print $ day1a input
-  print $ sum $ day1b input
+  let
+   finalAnsa
+    = show $ day1a input
+  
+  let
+   finalAnsb
+    = show $ sum $ day1b input
+  pure (finalAnsa, finalAnsb)

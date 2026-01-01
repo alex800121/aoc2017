@@ -1,41 +1,39 @@
 module Day14 where
 
+import Control.Parallel.Strategies
+import Data.Bits (Bits (..))
+import Data.DisjointSet
+import Data.Maybe (fromMaybe)
+import Data.Vector.Storable qualified as V
+import Data.WideWord (Word128)
 import Paths_AOC2017
-import Data.Array.Unboxed (Array)
-import qualified Data.Array.Unboxed as A
-import Data.Bifunctor (Bifunctor (..))
-import Data.Maybe (mapMaybe)
-import Data.Set (Set)
-import qualified Data.Set as Set
-import MyLib (drawArray, hexTo4Bits, knotHash)
+import MyLib (knotHashWord')
 
 type Index = (Int, Int)
 
-input = "ffayrhll"
+calcArray :: String -> V.Vector Word128
+calcArray s = V.fromList $ parMap rpar (\x -> let s' = s ++ '-' : show x in knotHashWord' s') [0 .. 127]
 
--- input = "flqrgnkx"
-calcArray :: String -> Array Index Char
-calcArray s = A.amap (\case '1' -> '#'; _ -> '.') $ drawArray $ map (\x -> let s' = s ++ '-' : show x in concat . mapMaybe hexTo4Bits $ knotHash s') [0 .. 127]
-
-adjacent = [(0, 1), (0, -1), (1, 0), (-1, 0)]
-
-calcAreas :: Array Index Char -> [Set Index]
-calcAreas a = go [] Set.empty (Set.singleton start) a'
+calcArea :: V.Vector Word128 -> DisjointSet (Int, Int)
+calcArea v = V.ifoldl' f empty v
   where
-    (start, a') = Set.deleteFindMin . Set.fromList . map fst . filter ((== '#') . snd) $ A.assocs a
-    go acc acc0 next rest
-      | Set.null rest = next : acc
-      | Set.null next = go (acc0 : acc) Set.empty (Set.singleton next') rest'
-      | otherwise = go acc (acc0 <> next) next'' rest''
+    f !acc !i = go 0 (fromMaybe 0 (v V.!? (i - 1))) acc i
+    go !j !p !acc !i !x
+      | x == 0 = acc
+      | x `testBit` 0 = go (j + 1) (p `shiftR` 1) acc'' i (x `shiftR` 1)
+      | otherwise = go (j + 1) (p `shiftR` 1) acc i (x `shiftR` 1)
       where
-        (next', rest') = Set.deleteFindMin rest
-        next'' = Set.unions (map (\(x, y) -> Set.map (bimap (+ x) (+ y)) next) adjacent) `Set.intersection` rest
-        rest'' = rest Set.\\ next''
-        
-        
+        acc' = if x `testBit` 1 then union (i, j) (i, j + 1) acc else insert (i, j) acc
+        acc'' = if p `testBit` 0 then union (i, j) (i - 1, j) acc' else acc'
 
-day14 :: IO ()
+day14 :: IO (String, String)
 day14 = do
-  -- input <- (getDataDir >>= readFile . (++ "/input/input14.txt"))
-  print $ length $ filter (== '#') $ A.elems $ calcArray input
-  print $ length $ calcAreas $ calcArray input
+  input <- init <$> (getDataDir >>= readFile . (++ "/input/input14.txt"))
+  let
+    !v = calcArray input
+    finalAnsa =
+      show . sum . map popCount . V.toList $ v
+  let
+    -- finalAnsb = ""
+    finalAnsb = show $ sets $ calcArea v
+  pure (finalAnsa, finalAnsb)

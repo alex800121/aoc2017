@@ -1,63 +1,20 @@
-module Day25 where
+module Day25 (day25) where
 
-import Paths_AOC2017
-import Paths_AOC2017
-import Control.Monad.ST.Strict (ST, runST)
-import Data.Char (isAlpha)
-import Data.Map (Map)
-import qualified Data.Map as Map
-import Data.Maybe (fromJust, fromMaybe)
-import Data.STRef.Strict (modifySTRef', newSTRef, readSTRef)
-import Data.Set (Set)
-import qualified Data.Set as Set
-import Data.Void (Void)
-import GHC.STRef (STRef (STRef))
+import Control.Monad.ST.Strict (runST)
+import Data.Bits (Bits (..))
+import Data.Char (isAlpha, ord)
+import Data.Maybe (fromJust)
+import Data.Vector.Generic.Mutable qualified as MGV
+import Data.Vector.Storable.Mutable qualified as MSV
+import Data.Vector.Unboxed qualified as UV
+import Data.Word (Word64)
 import MyLib (Parser, signedInteger)
+import Paths_AOC2017
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
-type Rules = Map Char (Rule, Rule)
-
-data Tape a = Tape
-  { _left :: ![a],
-    _focus :: !a,
-    _right :: ![a]
-  }
-  deriving (Show, Eq, Ord)
-
-write :: Tape a -> a -> Tape a
-write (Tape l _ r) c = Tape l c r
-
-moveLeft :: Tape a -> Maybe (Tape a)
-moveLeft (Tape [] c r) = Nothing
-moveLeft (Tape (x : xs) c r) = Just (Tape xs x (c : r))
-
-moveRight :: Tape a -> Maybe (Tape a)
-moveRight (Tape l c []) = Nothing
-moveRight (Tape l c (x : xs)) = Just (Tape (c : l) x xs)
-
-moveLeft' = moveLeftWithDefault False
-
-moveRight' = moveRightWithDefault False
-
-moveLeftWithDefault :: a -> Tape a -> Tape a
-moveLeftWithDefault a t = fromMaybe (Tape [] a (_focus t : _right t)) (moveLeft t)
-
-moveRightWithDefault :: a -> Tape a -> Tape a
-moveRightWithDefault a t = fromMaybe (Tape (_focus t : _left t) a []) (moveRight t)
-
-data Rule = R
-  { _writeOne :: !Bool,
-    _moveRight :: !Bool,
-    _toChar :: !Char
-  }
-  deriving (Show, Eq, Ord)
-
-data GameState = G
-  { _state :: !Char,
-    _tape :: !(Tape Bool)
-  }
-  deriving (Show, Eq, Ord)
+type SubRule = (Bool, Bool, Int)
+type Rule = (SubRule, SubRule)
 
 {-
 In state A:
@@ -71,7 +28,7 @@ In state A:
     - Continue with state E.
 -}
 
-rulesParser :: Parser Rules
+rulesParser :: Parser Rule
 rulesParser = do
   k <- string "In state " >> anySingle <* char ':' <* newline
   string "  If the current value is 0:" >> newline
@@ -82,44 +39,53 @@ rulesParser = do
   writeOne1 <- (== 1) <$> (string "    - Write the value " >> signedInteger <* char '.' <* newline)
   moveRight1 <- (== "right") <$> (string "    - Move one slot to the " >> many (satisfy isAlpha) <* char '.' <* newline)
   toChar1 <- string "    - Continue with state " >> anySingle <* char '.' <* newline
-  pure $ Map.singleton k (R writeOne moveRight toChar, R writeOne1 moveRight1 toChar1)
+  pure ((writeOne, moveRight, ord toChar - ord 'A'), (writeOne1, moveRight1, ord toChar1 - ord 'A'))
 
 {-
 Begin in state A.
 Perform a diagnostic checksum after 12523873 steps.
 -}
 
-inputParser :: Parser (Int, Rules, GameState)
+run rules !step !r len !posIn !posOut !cur v
+  | step <= 0 = MSV.write v posOut cur >> MSV.foldl' (\acc x -> popCount x + acc) 0 v
+  -- | posIn < 0 && posOut - 1 < 0 = do
+  --     MSV.write v posOut cur
+  --     run rules step r (len + 1) (cell - 1) 0 0 =<< MGV.growFront v 1
+  -- | posIn >= cell && posOut + 1 >= len = do
+  --     MSV.write v posOut cur
+  --     run rules step r (len + 1) 0 (posOut + 1) 0 =<< MGV.grow v 1
+  | posIn < 0 = MSV.write v posOut cur >> MSV.read v (posOut - 1) >>= \cur' -> run rules step r len (cell - 1) (posOut - 1) cur' v
+  | posIn >= cell = MSV.write v posOut cur >> MSV.read v (posOut + 1) >>= \cur' -> run rules step r len 0 (posOut + 1) cur' v
+  | otherwise = run rules (step - 1) r' len posIn' posOut cur' v
+  where
+    ((w0, r0, n0), (w1, r1, n1)) = rules UV.! r
+    b = testBit cur posIn
+    cur'
+      | b && w1 = setBit cur posIn
+      | b = clearBit cur posIn
+      | w0 = setBit cur posIn
+      | otherwise = clearBit cur posIn
+    posIn'
+      | b && r1 = posIn + 1
+      | b = posIn - 1
+      | r0 = posIn + 1
+      | otherwise = posIn - 1
+    r' = if b then n1 else n0
+
+cell = 64
+len = 400
+
+inputParser :: Parser (Int, UV.Vector Rule, Int)
 inputParser = do
   s <- string "Begin in state " >> anySingle <* char '.' <* newline
   i <- string "Perform a diagnostic checksum after " >> signedInteger <* string " steps." <* newline <* newline
-  r <- Map.unions <$> (rulesParser `sepBy` newline)
-  pure (i, r, G s (Tape [] False []))
+  r <- rulesParser `sepBy` newline
+  pure (i, UV.fromList r, ord s - ord 'A')
 
-step :: Rules -> GameState -> GameState
-step rules g@(G s t) = applyRule (if x then r1 else r0) g
-  where
-    (r0, r1) = rules Map.! s
-    x = _focus t
-
-applyRule :: Rule -> GameState -> GameState
-applyRule (R o r n) (G c t) = G n ((if r then moveRight' else moveLeft') (write t o))
-
-calc :: Tape Bool -> Int
-calc (Tape l c r) = length (filter id l) + length (filter id (c : r))
-
-day25a :: Rules -> Int -> GameState -> GameState
-day25a rules n g = runST $ do
-  gst <- newSTRef g
-  f n gst
-  readSTRef gst
-  where
-    f :: Int -> STRef s GameState -> ST s ()
-    f n x
-      | n <= 0 = pure ()
-      | otherwise = modifySTRef' x (step rules) >> f (n - 1) x
-
-day25 :: IO ()
+day25 :: IO (String, String)
 day25 = do
-  (target, rules, initState) <- fromJust . parseMaybe inputParser <$> (getDataDir >>= readFile . (++ "/input/input25.txt"))
-  print $ calc $ _tape $ day25a rules target initState
+  (target, rules, start) <- fromJust . parseMaybe inputParser <$> (getDataDir >>= readFile . (++ "/input/input25.txt"))
+  -- (target, rules, start) <- fromJust . parseMaybe inputParser <$> (getDataDir >>= readFile . (++ "/input/test25.txt"))
+  let finalAnsa = show $ runST $ run rules target start len (cell `div` 2) (len `div` 2) 0 =<< MSV.replicate len (0 :: Word64)
+      finalAnsb = "Merry Christmas!!!"
+  pure (finalAnsa, finalAnsb)
